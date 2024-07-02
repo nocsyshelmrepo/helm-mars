@@ -1,0 +1,107 @@
+# Default values for mars.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global: {}
+
+image:
+  mars:
+    repository: nocsysmars/mars
+    pullPolicy: IfNotPresent
+      # Overrides the image tag whose default is the chart appVersion.
+    tag: "accton"
+  web:
+    repository: nocsysmars/nginx
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "1.14.0-mars"
+  es:
+    repository: nocsysmars/elasticsearch
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "7.9.0-oss"
+  lgs:
+    repository: nocsysmars/logstash
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "7.5.2-oss"
+
+cmdstr:
+  mars: |
+    sleep 15
+  web: |
+    /etc/nginx/update_mars_ip.sh
+  es: |
+    sleep 15
+  lgs: |
+    sleep 15
+
+service:
+  mars:
+    type: ClusterIP
+    mars:
+      port: 8181
+    webssh:
+      port: 8443
+  web:
+    type: NodePort
+    tftp:
+      port: 69
+      nodePort: 30069
+    https:
+      port: 443
+      nodePort: 30443
+  es:
+    type: ClusterIP
+    rest:
+      port: 9200
+    inter:
+      port: 9300
+
+  lgs:
+    type: NodePort
+    slogtcp:
+      port: 5514
+      nodePort: 32514
+    slogudp:
+      port: 5514
+      nodePort: 32514
+    beats:
+      port: 5044
+    collectd:
+      port: 25826
+    websocket:
+      port: 3233
+
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+dev:
+  enabled: false
+

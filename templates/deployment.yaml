@@ -2,14 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "mars.fullname" . }}-nginx
+  name: {{ include "mars.fullname" . }}-web
   labels:
     {{- include "mars.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "mars.selectorLabels" . | nindent 6 }}
+      {{- include "mars.selectorLabels" . | nindent 6 }}-web
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -17,12 +17,30 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "mars.selectorLabels" . | nindent 8 }}
+        {{- include "mars.selectorLabels" . | nindent 8 }}-web
     spec:
+      volumes:
+        - name: volume-conf
+          configMap:
+            name: {{ .Release.Name }}-cm-cfg
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: filebeat.yml
+                path: filebeat.yml
       containers:
         - name: {{ .Chart.Name }}-web
-          image: {{ include "mars.image" (list .Values.global.repoPrefix .Values.image.web.repository .Values.image.web.tag) }}
+          image: {{ include "mars.image" (list
+                    .Values.global.repoPrefix .Values.image.web.repository .Values.image.web.tag) }}
           imagePullPolicy: {{ .Values.image.web.pullPolicy }}
+
+          volumeMounts:
+            - name: volume-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: volume-conf
+              mountPath: /etc/filebeat/filebeat.yml
+              subPath: filebeat.yml
 
           command:
             - /bin/sh
@@ -38,32 +56,34 @@ spec:
             - containerPort: 80
 
 ---
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: accton-mars
-  name: mars-logstash
+  name: {{ include "mars.fullname" . }}-lgs
+  labels:
+    {{- include "mars.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: mars-logstash
+      {{- include "mars.selectorLabels" . | nindent 6 }}-lgs
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app.kubernetes.io/name: mars-logstash
+        {{- include "mars.selectorLabels" . | nindent 8 }}-lgs
     spec:
       containers:
-      - name: logstash
-        image: 'nocsysmars/logstash:7.5.2-oss'
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: LS_JAVA_OPTS
-          valueFrom:
-            configMapKeyRef:
-              name: mars-configmap
-              key: logstash_env_java_ops
-        - name: ES_HOSTS
-          value: "elasticsearch.accton-mars.svc.cluster.local:9200"
+        - name: {{ .Chart.Name }}-lgs
+          image: {{ include "mars.image" (list 
+                    .Values.global.repoPrefix .Values.image.lgs.repository .Values.image.lgs.tag) }}
+          imagePullPolicy: {{ .Values.image.lgs.pullPolicy }}
+          env:
+            - name: LS_JAVA_OPTS
+              value: "{{ .Values.envs.lgs.jopts }}"
+            - name: ES_HOSTS
+              value: "{{ printf "%s-es.%s:9200" (include "mars.fullname" .) .Release.Namespace }}"
+

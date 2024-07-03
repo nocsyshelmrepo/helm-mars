@@ -28,13 +28,68 @@ image:
 
 cmdstr:
   mars: |
-    sleep 15
+    cp /tmp/collectd.conf /etc/collectd/
+    echo "Hostname ${ONOS_IP}" >> /etc/collectd/collectd.conf
+
+    service collectd restart
+    service filebeat restart
+
+    . /root/onos/provision.sh &
+    /root/onos/bin/onos-service service
+    #/root/onos/run_k8s.sh
+
   web: |
-    /etc/nginx/update_mars_ip.sh
-  es: |
-    sleep 15
-  lgs: |
-    sleep 15
+    service xinetd start
+    service filebeat restart
+    nginx -g "daemon off;"
+    #/etc/nginx/update_mars_ip.sh
+
+  #es: |
+  #sleep 15
+  #lgs: |
+  #sleep 15
+
+envs:
+  lgs:
+    jopts: "-Xmx2g -Xms2g"
+  es:
+    jopts: "-Xmx2g -Xms2g"
+  mars:
+    topo:  "clos"
+    jopts: "-Xms8G -Xmx8G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode \
+            -Dcom.sun.management.jmxremote -Dds.lock.timeout.milliseconds=10000"
+    apps: >
+      drivers
+      com.accton.drivers.accton.gnmi
+      com.accton.drivers.accton.rest
+      com.accton.drivers.accton.snmp
+      proxyarp
+      restsb
+      snmp
+      org.onosproject.netconf
+      org.onosproject.drivers.netconf
+      org.onosproject.drivers.h3c.netconf
+      linkdiscovery
+      com.accton.provider.switchpolling
+      com.accton.eventclient
+      com.accton.useraccount
+      com.accton.defaultcfg
+      com.accton.alert
+      com.accton.analyzer
+      com.accton.utility
+      com.accton.healthycheck
+      com.accton.dhcpserver
+      com.accton.dhcpv6server
+      com.accton.endpoint
+      com.accton.monitor
+      com.accton.ntpserver
+      com.accton.qos
+      com.accton.sflow
+      com.accton.storm-control
+      com.accton.switchmgmt
+      com.accton.topology
+      com.accton.websocket
+      com.accton.webssh
 
 service:
   mars:

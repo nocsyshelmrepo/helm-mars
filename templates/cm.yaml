@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-cm-cfg
+  namespace: {{ $.Release.Namespace }}
+data:
+{{- range $key, $value := .Files }}
+{{- if hasPrefix "conf/" $key }}
+{{ base $key | indent 2 }}: |
+{{ tpl ($.Files.Get $key) $ | indent 4 }}
+{{- end }}
+{{- end }}
+

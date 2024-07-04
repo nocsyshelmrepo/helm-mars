@@ -27,7 +27,7 @@ spec:
             items:
               - key: collectd.conf
                 path: collectd.conf
-              - key: filebeat.yml
+              - key: fbmars.yml
                 path: filebeat.yml
 
       containers:
@@ -59,10 +59,10 @@ spec:
           - containerPort: 8181
           - containerPort: 8443
           resources:
-            requests:
-              memory: "8Gi"
-            requests:
-              cpu: "2000m"
+          {{- with .Values.resources.mars }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
           env:
           - name: ONOS_IP
             valueFrom:
@@ -82,6 +82,8 @@ spec:
             value: "true"
           - name: ES_HOSTS
             value: "{{ printf "%s-es.%s:9200" (include "mars.fullname" .) .Release.Namespace }}"
+          - name: LOGSTASH_SERVICE_HOST
+            value: "{{ include "mars.fullname" . }}-lgs.{{ .Release.Namespace }}"
           - name: JAVA_OPTS
             value: "{{ .Values.envs.mars.jopts }}"
           - name: ONOS_APPS
@@ -101,7 +103,7 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 4Gi
+          storage: {{ .Values.pvc.mars.size }}
 
 
 ---
@@ -153,7 +155,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: discovery.zen.ping.unicast.hosts
-            value: {{ printf "es-cluster-0-%s-es" (include "mars.fullname" .) }}
+            value: "{{ include "mars.fullname" . }}-es.{{ .Release.Namespace }}"
           - name: discovery.zen.minimum_master_nodes
             value: "1"
           - name: ES_JAVA_OPTS
@@ -189,5 +191,5 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 4Gi
+            storage: {{ .Values.pvc.es.size }}
 

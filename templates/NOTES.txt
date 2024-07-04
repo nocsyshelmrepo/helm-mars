@@ -1,6 +1,6 @@
 {{- if contains "NodePort" .Values.service.web.type }}
 
 USE command below to check the nodePort:
-   kubectl describe svc {{ .Release.Name }}-mars -n {{ .Release.Namespace }}
+   kubectl describe svc {{ .Release.Name }}-web -n {{ .Release.Namespace }}
 
 {{- end }}

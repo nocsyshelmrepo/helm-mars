@@ -12,6 +12,8 @@
 | `pvc.es.size` | PVC size used by elasticsearch container | "4Gi" |
 | `resource.mars.requests.cpu` | CPU resource used by mars container | "2000m" |
 | `resource.mars.requests.memory` | MEM resource used by mars container | "8Gi" |
+| `license.file` | License file for mars | |
+| `license.overwrite` | Overwrite the old license file found in PVC. | false |
 
 ## Usage:
 [Helm](https://helm.sh) must be installed to use the charts.  
@@ -32,4 +34,8 @@ helm install -f test.yaml {release} -n {namespace} {repo/chart}
 4. Or apply deafult values for installation.
 ```
 helm install {release} -n {namespace} {repo/chart}
+```
+5. Apply license file for installation.
+```
+helm install {release} -n {namespace} --set-file license.file=./{lic} {repo/chart}
 ```

@@ -29,6 +29,14 @@ spec:
                 path: collectd.conf
               - key: fbmars.yml
                 path: filebeat.yml
+        {{- if .Values.license.file }}
+        - name: volume-lic
+          secret:
+            secretName: {{ .Release.Name }}-lic
+            items:
+              - key: license
+                path: old.lic
+        {{- end }}
 
       containers:
         - name: {{ .Chart.Name }}-mars
@@ -45,12 +53,24 @@ spec:
               subPath: filebeat.yml
             - name: mars-download-claim
               mountPath: /root/onos/download
+            {{- if .Values.license.file }}
+            - name: volume-lic
+              mountPath: /root/onos/download/old.lic
+              subPath: old.lic
+            {{- end }}
 
           command:
             - /bin/sh
             - '-c'
             - |
               /bin/sh <<'EOF'
+              {{- if .Values.license.file }}
+                {{- if not .Values.license.overwrite }}
+              [ ! -s /root/onos/download/license ] && \
+                {{- end }}
+              [ -s /root/onos/download/old.lic ] && \
+              cp /root/onos/download/old.lic /root/onos/download/license
+              {{- end }}
               {{ tpl (.Values.cmdstr.mars) . | nindent 14 }}
               EOF
 

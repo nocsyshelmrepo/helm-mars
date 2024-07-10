@@ -150,6 +150,18 @@ resources:
     requests:
       memory: 8Gi
       cpu: 2000m
+  lgs:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+  es:
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+  web:
+    requests:
+      memory: 1Gi
+      cpu: 512m
 
 pvc:
   mars:

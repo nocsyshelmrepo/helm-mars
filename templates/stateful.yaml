@@ -75,39 +75,39 @@ spec:
               EOF
 
           ports:
-          - containerPort: 8101
-          - containerPort: 8181
-          - containerPort: 8443
-          resources:
+            - containerPort: 8101
+            - containerPort: 8181
+            - containerPort: 8443
           {{- with .Values.resources.mars }}
+          resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
 
           env:
-          - name: ONOS_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: WORK_NODE_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-          - name: ONOS_TOPOLOGY
-            value: "{{ .Values.envs.mars.topo }}"
-          - name: FABRIC_ADDRESS
-            value: "unnumbered"
-          - name: ES_DOC
-            value: "_doc"
-          - name: KARAF_DEBUG
-            value: "true"
-          - name: ES_HOSTS
-            value: "{{ printf "%s-es.%s:9200" (include "mars.fullname" .) .Release.Namespace }}"
-          - name: LOGSTASH_SERVICE_HOST
-            value: "{{ include "mars.fullname" . }}-lgs.{{ .Release.Namespace }}"
-          - name: JAVA_OPTS
-            value: "{{ .Values.envs.mars.jopts }}"
-          - name: ONOS_APPS
-            value: "{{ .Values.envs.mars.apps }}"
+            - name: ONOS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: WORK_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ONOS_TOPOLOGY
+              value: "{{ .Values.envs.mars.topo }}"
+            - name: FABRIC_ADDRESS
+              value: "unnumbered"
+            - name: ES_DOC
+              value: "_doc"
+            - name: KARAF_DEBUG
+              value: "true"
+            - name: ES_HOSTS
+              value: "{{ printf "%s-es.%s:9200" (include "mars.fullname" .) .Release.Namespace }}"
+            - name: LOGSTASH_SERVICE_HOST
+              value: "{{ include "mars.fullname" . }}-lgs.{{ .Release.Namespace }}"
+            - name: JAVA_OPTS
+              value: "{{ .Values.envs.mars.jopts }}"
+            - name: ONOS_APPS
+              value: "{{ .Values.envs.mars.apps }}"
           livenessProbe:
             exec:
               command:
@@ -117,13 +117,13 @@ spec:
                   curl --fail -u marsinneruser:onlycodeused -I
                   http://127.0.0.1:8181/mars/v1/network/configuration
   volumeClaimTemplates:
-  - metadata:
-      name: mars-download-claim
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: {{ .Values.pvc.mars.size }}
+    - metadata:
+        name: mars-download-claim
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.pvc.mars.size }}
 
 
 ---
@@ -153,35 +153,41 @@ spec:
           image: {{ include "mars.image" (list
                     .Values.global.repoPrefix .Values.image.es.repository .Values.image.es.tag) }}
           imagePullPolicy: {{ .Values.image.es.pullPolicy }}
+
+          {{- with .Values.resources.es }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
           ports:
-          - containerPort: 9200
-            name: rest
-            protocol: TCP
-          - name: inter-node
-            containerPort: 9300
-            protocol: TCP
+            - containerPort: 9200
+              name: rest
+              protocol: TCP
+            - name: inter-node
+              containerPort: 9300
+              protocol: TCP
           volumeMounts:
-          - name: es-data-claim
-            mountPath: /usr/share/elasticsearch/data
+            - name: es-data-claim
+              mountPath: /usr/share/elasticsearch/data
           env:
-          - name: cluster.name
-            value: mars-elk
-          - name: node.name
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: cluster.initial_master_nodes
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: discovery.zen.ping.unicast.hosts
-            value: "{{ include "mars.fullname" . }}-es.{{ .Release.Namespace }}"
-          - name: discovery.zen.minimum_master_nodes
-            value: "1"
-          - name: ES_JAVA_OPTS
-            value: "{{ .Values.envs.es.jopts }}"
-          - name: network.host
-            value: "0.0.0.0"
+            - name: cluster.name
+              value: mars-elk
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: cluster.initial_master_nodes
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.zen.ping.unicast.hosts
+              value: "{{ include "mars.fullname" . }}-es.{{ .Release.Namespace }}"
+            - name: discovery.zen.minimum_master_nodes
+              value: "1"
+            - name: ES_JAVA_OPTS
+              value: "{{ .Values.envs.es.jopts }}"
+            - name: network.host
+              value: "0.0.0.0"
       initContainers:
         - name: fix-permissions
           image: busybox:1.28.4

@@ -26,13 +26,18 @@ spec:
             items:
               - key: nginx.conf
                 path: nginx.conf
-              - key: filebeat.yml
+              - key: fbweb.yml
                 path: filebeat.yml
       containers:
         - name: {{ .Chart.Name }}-web
           image: {{ include "mars.image" (list
                     .Values.global.repoPrefix .Values.image.web.repository .Values.image.web.tag) }}
           imagePullPolicy: {{ .Values.image.web.pullPolicy }}
+
+          {{- with .Values.resources.web }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
           volumeMounts:
             - name: volume-conf
@@ -81,6 +86,12 @@ spec:
           image: {{ include "mars.image" (list 
                     .Values.global.repoPrefix .Values.image.lgs.repository .Values.image.lgs.tag) }}
           imagePullPolicy: {{ .Values.image.lgs.pullPolicy }}
+
+          {{- with .Values.resources.lgs }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
           env:
             - name: LS_JAVA_OPTS
               value: "{{ .Values.envs.lgs.jopts }}"

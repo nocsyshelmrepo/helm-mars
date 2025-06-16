@@ -18,7 +18,7 @@ image:
     repository: nocsysmars/nginx
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.14.0-mars"
+    tag: "nocsysmars/nginx:1.27.0-ares-accton"
   es:
     repository: nocsysmars/elasticsearch
     pullPolicy: IfNotPresent

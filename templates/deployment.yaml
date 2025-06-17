@@ -20,6 +20,15 @@ spec:
         {{- include "mars.selectorLabels" . | nindent 8 }}-web-ui
     spec:
       automountServiceAccountToken: false
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
       volumes:
         - name: volume-conf
           configMap:
@@ -80,6 +89,16 @@ spec:
         {{- include "mars.selectorLabels" . | nindent 8 }}-lgs
     spec:
       automountServiceAccountToken: false
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+
       containers:
         - name: {{ .Chart.Name }}-lgs
           image: {{ include "mars.image" (list 
@@ -119,6 +138,15 @@ spec:
         {{- include "mars.selectorLabels" . | nindent 8 }}-mars
     spec:
       automountServiceAccountToken: false
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
       volumes:
         - name: volume-conf
           configMap:

@@ -13,12 +13,14 @@ image:
     repository: nocsysmars/mars
     pullPolicy: IfNotPresent
       # Overrides the image tag whose default is the chart appVersion.
-    tag: "accton"
+      #tag: "accton"
+    tag: "sia"
   web:
-    repository: nocsysmars/nginx
+    repository: nocsysmars/nginx-sia-1.27
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.27.0-ares-accton"
+    #tag: "1.27.0-ares-accton"
+    tag: "1.0.20250617"
   es:
     repository: nocsysmars/elasticsearch
     pullPolicy: IfNotPresent
@@ -62,38 +64,68 @@ envs:
     topo:  "clos"
     jopts: "-Xms8G -Xmx8G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode \
             -Dcom.sun.management.jmxremote -Dds.lock.timeout.milliseconds=10000"
+
+#    apps: >
+#      drivers
+#      com.accton.drivers.accton.gnmi
+#      com.accton.drivers.accton.rest
+#      com.accton.drivers.accton.snmp
+#      proxyarp
+#      restsb
+#      snmp
+#      org.onosproject.netconf
+#      org.onosproject.drivers.netconf
+#      org.onosproject.drivers.h3c.netconf
+#      linkdiscovery
+#      com.accton.provider.switchpolling
+#      com.accton.eventclient
+#      com.accton.useraccount
+#      com.accton.defaultcfg
+#      com.accton.alert
+#      com.accton.analyzer
+#      com.accton.utility
+#      com.accton.healthycheck
+#      com.accton.dhcpserver
+#      com.accton.dhcpv6server
+#      com.accton.endpoint
+#      com.accton.monitor
+#      com.accton.ntpserver
+#      com.accton.qos
+#      com.accton.sflow
+#      com.accton.storm-control
+#      com.accton.switchmgmt
+#      com.accton.topology
+#      com.accton.websocket
+#      com.accton.webssh
+
     apps: >
-      drivers
-      com.accton.drivers.accton.gnmi
-      com.accton.drivers.accton.rest
-      com.accton.drivers.accton.snmp
-      proxyarp
-      restsb
-      snmp
-      org.onosproject.netconf
-      org.onosproject.drivers.netconf
-      org.onosproject.drivers.h3c.netconf
-      linkdiscovery
-      com.accton.provider.switchpolling
-      com.accton.eventclient
-      com.accton.useraccount
-      com.accton.defaultcfg
-      com.accton.alert
-      com.accton.analyzer
-      com.accton.utility
-      com.accton.healthycheck
-      com.accton.dhcpserver
-      com.accton.dhcpv6server
-      com.accton.endpoint
-      com.accton.monitor
-      com.accton.ntpserver
-      com.accton.qos
-      com.accton.sflow
-      com.accton.storm-control
-      com.accton.switchmgmt
-      com.accton.topology
-      com.accton.websocket
-      com.accton.webssh
+        drivers
+        openflow
+        fwd
+        proxyarp
+        snmp
+        linkdiscovery
+        com.nocsys.alert
+        com.nocsys.analyzer
+        com.nocsys.monitor
+        com.nocsys.calcpath
+        com.nocsys.defaultcfg
+        org.onosproject.dhcprelay
+        com.nocsys.dhcpserver
+        com.nocsys.dhcpv6server
+        com.nocsys.drivers.nocsys.gnmi
+        com.nocsys.drivers.nocsys.rest
+        com.nocsys.drivers.nocsys.snmp
+        com.nocsys.eventclient
+        com.nocsys.healthycheck
+        com.nocsys.ntpserver
+        com.nocsys.provider.switchpolling
+        com.nocsys.qos
+        com.nocsys.switchmgmt
+        com.nocsys.useraccount
+        com.nocsys.utility
+        com.nocsys.staticrouting
+        com.nocsys.webssh
 
 service:
   mars:

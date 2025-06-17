@@ -20,6 +20,15 @@ spec:
       labels:
         {{- include "mars.selectorLabels" . | nindent 8 }}-es
     spec:
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
       automountServiceAccountToken: false
       containers:
         - name: {{ .Chart.Name }}-es
@@ -114,6 +123,15 @@ spec:
         {{- include "mars.selectorLabels" . | nindent 8 }}-web-download
     spec:
       automountServiceAccountToken: false
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
       volumes:
         - name: volume-conf
           configMap:

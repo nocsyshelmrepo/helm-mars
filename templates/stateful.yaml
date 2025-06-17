@@ -2,134 +2,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "mars.fullname" . }}-mars
-  labels:
-    {{- include "mars.labels" . | nindent 4 }}
-spec:
-  serviceName: {{ include "mars.fullname" . }}-mars
-  replicas: 1
-  selector:
-    matchLabels:
-      {{- include "mars.selectorLabels" . | nindent 6 }}-mars
-  template:
-    metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      labels:
-        {{- include "mars.selectorLabels" . | nindent 8 }}-mars
-    spec:
-      volumes:
-        - name: volume-conf
-          configMap:
-            name: {{ .Release.Name }}-cm-cfg
-            items:
-              - key: collectd.conf
-                path: collectd.conf
-              - key: fbmars.yml
-                path: filebeat.yml
-        {{- if .Values.license.file }}
-        - name: volume-lic
-          secret:
-            secretName: {{ .Release.Name }}-lic
-            items:
-              - key: license
-                path: old.lic
-        {{- end }}
-
-      containers:
-        - name: {{ .Chart.Name }}-mars
-          image: {{ include "mars.image" (list
-                    .Values.global.repoPrefix .Values.image.mars.repository .Values.image.mars.tag) }}
-          imagePullPolicy: {{ .Values.image.mars.pullPolicy }}
-
-          volumeMounts:
-            - name: volume-conf
-              mountPath: /tmp/collectd.conf
-              subPath: collectd.conf
-            - name: volume-conf
-              mountPath: /etc/filebeat/filebeat.yml
-              subPath: filebeat.yml
-            - name: mars-download-claim
-              mountPath: /root/onos/download
-            {{- if .Values.license.file }}
-            - name: volume-lic
-              mountPath: /root/onos/download/old.lic
-              subPath: old.lic
-            {{- end }}
-
-          command:
-            - /bin/sh
-            - '-c'
-            - |
-              /bin/sh <<'EOF'
-              {{- if .Values.license.file }}
-                {{- if not .Values.license.overwrite }}
-              [ ! -s /root/onos/download/license ] && \
-                {{- end }}
-              [ -s /root/onos/download/old.lic ] && \
-              cp /root/onos/download/old.lic /root/onos/download/license
-              {{- end }}
-              {{ tpl (.Values.cmdstr.mars) . | nindent 14 }}
-              EOF
-
-          ports:
-            - containerPort: 8101
-            - containerPort: 8181
-            - containerPort: 8443
-          {{- with .Values.resources.mars }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-          env:
-            - name: ONOS_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: WORK_NODE_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: ONOS_TOPOLOGY
-              value: "{{ .Values.envs.mars.topo }}"
-            - name: FABRIC_ADDRESS
-              value: "unnumbered"
-            - name: ES_DOC
-              value: "_doc"
-            - name: KARAF_DEBUG
-              value: "true"
-            - name: ES_HOSTS
-              value: "{{ printf "%s-es.%s:9200" (include "mars.fullname" .) .Release.Namespace }}"
-            - name: LOGSTASH_SERVICE_HOST
-              value: "{{ include "mars.fullname" . }}-lgs.{{ .Release.Namespace }}"
-            - name: JAVA_OPTS
-              value: "{{ .Values.envs.mars.jopts }}"
-            - name: ONOS_APPS
-              value: "{{ .Values.envs.mars.apps }}"
-          livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - '-c'
-                - >-
-                  curl --fail -u marsinneruser:onlycodeused -I
-                  http://127.0.0.1:8181/mars/v1/network/configuration
-  volumeClaimTemplates:
-    - metadata:
-        name: mars-download-claim
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: {{ .Values.pvc.mars.size }}
-
-
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
   name: {{ include "mars.fullname" . }}-es
   labels:
     {{- include "mars.labels" . | nindent 4 }}-es
@@ -148,6 +20,7 @@ spec:
       labels:
         {{- include "mars.selectorLabels" . | nindent 8 }}-es
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: {{ .Chart.Name }}-es
           image: {{ include "mars.image" (list
@@ -167,7 +40,7 @@ spec:
               containerPort: 9300
               protocol: TCP
           volumeMounts:
-            - name: es-data-claim
+            - name: {{ include "mars.fullname" . }}-es-data-claim
               mountPath: /usr/share/elasticsearch/data
           env:
             - name: cluster.name
@@ -196,7 +69,7 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
-            - name: es-data-claim
+            - name: {{ include "mars.fullname" . }}-es-data-claim
               mountPath: /usr/share/elasticsearch/data
         - name: increase-vm-max-map
           image:  busybox:1.28.4
@@ -212,10 +85,97 @@ spec:
             privileged: true
   volumeClaimTemplates:
     - metadata:
-        name: es-data-claim
+        name: {{ include "mars.fullname" . }}-es-data-claim
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
             storage: {{ .Values.pvc.es.size }}
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mars.fullname" . }}-web-download
+  labels:
+    {{- include "mars.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "mars.selectorLabels" . | nindent 6 }}-web-download
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mars.selectorLabels" . | nindent 8 }}-web-download
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: volume-conf
+          configMap:
+            name: {{ .Release.Name }}-cm-cfg
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: fbweb.yml
+                path: filebeat.yml
+              - key: swi-index.html
+                path: swi-index.html
+      containers:
+        - name: {{ .Chart.Name }}-web-download
+          image: {{ include "mars.image" (list
+                    .Values.global.repoPrefix .Values.image.web.repository .Values.image.web.tag) }}
+          imagePullPolicy: {{ .Values.image.web.pullPolicy }}
+
+          {{- with .Values.resources.web }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          volumeMounts:
+            - name: volume-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: volume-conf
+              mountPath: /etc/filebeat/filebeat.yml
+              subPath: filebeat.yml
+            - name: download
+              mountPath: /opt/download
+            - name: swi
+              mountPath: /opt/swi
+            - name: volume-conf
+              mountPath: /opt/index.html
+              subPath: swi-index.html
+
+          command:
+            - /bin/sh
+            - '-c'
+            - |
+              /bin/sh <<'EOF'
+              {{ tpl (.Values.cmdstr.web) . | nindent 14 }}
+              EOF
+
+          ports:
+            - containerPort: 69
+            - containerPort: 80
+  volumeClaimTemplates:
+    - metadata:
+        name: download
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.pvc.web.download.size }}
+    - metadata:
+        name: swi
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.pvc.web.swi.size }}
+
 

@@ -18,7 +18,7 @@ image:
     repository: nocsysmars/nginx
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: "nocsysmars/nginx:1.27.0-ares-accton"
+    tag: "1.27.0-ares-accton"
   es:
     repository: nocsysmars/elasticsearch
     pullPolicy: IfNotPresent
@@ -104,12 +104,15 @@ service:
       port: 8443
   web:
     type: NodePort
-    tftp:
-      port: 69
-      nodePort: 30069
     https:
       port: 443
       nodePort: 30443
+    tftp:
+      port: 69
+      nodePort: 30069
+    http:
+      port: 80
+      nodePort: 30080
   es:
     type: ClusterIP
     rest:
@@ -158,14 +161,24 @@ resources:
     requests:
       memory: 2Gi
       cpu: 1000m
-  web:
+  web-ui:
     requests:
       memory: 1Gi
       cpu: 512m
 
+  web-download:
+    requests:
+       memory: 500Mi
+       cpu: 512m
+
 pvc:
-  mars:
-    size: 4Gi
+  web:
+    swi:
+      size: 1Gi
+    download:
+      size: 100Mi
+  #mars:
+  #  size: 4Gi
   es:
     size: 4Gi
 

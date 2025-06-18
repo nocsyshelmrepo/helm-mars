@@ -1,0 +1,42 @@
+
+# example values for sia
+
+image:
+  mars:
+    tag: "sia"
+
+  web:
+    repository: nocsysmars/nginx-sia-1.27
+    tag: "1.0.20250617"
+
+envs:
+  mars:
+    apps: >
+      drivers
+      openflow
+      fwd
+      proxyarp
+      snmp
+      linkdiscovery
+      com.nocsys.alert
+      com.nocsys.analyzer
+      com.nocsys.monitor
+      com.nocsys.calcpath
+      com.nocsys.defaultcfg
+      org.onosproject.dhcprelay
+      com.nocsys.dhcpserver
+      com.nocsys.dhcpv6server
+      com.nocsys.drivers.nocsys.rest
+      com.nocsys.drivers.nocsys.snmp
+      com.nocsys.eventclient
+      com.nocsys.healthycheck
+      com.nocsys.ntpserver
+      com.nocsys.provider.switchpolling
+      com.nocsys.qos
+      com.nocsys.switchmgmt
+      com.nocsys.useraccount
+      com.nocsys.utility
+      com.nocsys.staticrouting
+      com.nocsys.webssh
+
+

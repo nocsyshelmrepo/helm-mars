@@ -109,6 +109,7 @@ metadata:
   labels:
     {{- include "mars.labels" . | nindent 4 }}
 spec:
+  serviceName: {{ include "mars.fullname" . }}-web-download
   replicas: 1
   selector:
     matchLabels:

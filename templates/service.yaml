@@ -11,7 +11,7 @@ spec:
   ports:
     - port: {{ .Values.service.web.https.port }}
       nodePort: {{ .Values.service.web.https.nodePort }}
-      name: https 
+      name: https
 
 ---
 apiVersion: v1
@@ -58,10 +58,27 @@ spec:
   selector:
     {{- include "mars.selectorLabels" . | nindent 4 }}-es
   ports:
-    - name: rest 
+    - name: rest
       port: {{ .Values.service.es.rest.port }}
     - name: inter-node
       port: {{ .Values.service.es.inter.port }}
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ template "mars.es.uname" . }}-headless
+  labels:
+    app: "{{ template "mars.es.uname" . }}"
+spec:
+  clusterIP: None # This is needed for statefulset hostnames like elasticsearch-0 to resolve
+  selector:
+    {{- include "mars.selectorLabels" . | nindent 4 }}-es
+  ports:
+  - name: rest
+    port: {{ .Values.service.es.rest.port }}
+  - name: inter-node
+    port: {{ .Values.service.es.inter.port }}
 
 ---
 apiVersion: v1
@@ -70,19 +87,19 @@ metadata:
   name: {{ include "mars.fullname" . }}-lgs
   namespace: {{ .Release.Namespace }}
 spec:
-  type: {{ .Values.service.lgs.type }} 
+  type: {{ .Values.service.lgs.type }}
   selector:
     {{- include "mars.selectorLabels" . | nindent 4 }}-lgs
   ports:
-    - protocol: TCP 
+    - protocol: TCP
       port: {{ .Values.service.lgs.slogtcp.port }}
       name: syslog-tcp
-    - protocol: UDP 
+    - protocol: UDP
       port: {{ .Values.service.lgs.slogudp.port }}
-      name: syslog-udp 
-    - protocol: TCP 
-      port: {{ .Values.service.lgs.beats.port }}      
-      name: beats  
+      name: syslog-udp
+    - protocol: TCP
+      port: {{ .Values.service.lgs.beats.port }}
+      name: beats
     - protocol: UDP
       port: {{ .Values.service.lgs.collectd.port }}
       name: collectd

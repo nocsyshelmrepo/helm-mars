@@ -75,3 +75,19 @@ Get the proper image name
 {{- end }}
 {{- end }}
 
+{{- define "mars.es.uname" -}}
+{{- if empty .Values.elasticsearch.fullnameOverride -}}
+{{ include "mars.fullname" . }}-{{ .Values.elasticsearch.clusterName }}
+{{- else -}}
+{{ .Values.elasticsearch.fullnameOverride }}
+{{- end -}}
+{{- end -}}
+
+{{- define "mars.es.endpoints" -}}
+{{- $replicas := int (toString (.Values.elasticsearch.replicas)) }}
+{{- $uname := (include "mars.es.uname" .) }}
+  {{- range $i, $e := untilStep 0 $replicas 1 -}}
+{{ $uname }}-{{ $i }},
+  {{- end -}}
+{{- end -}}
+

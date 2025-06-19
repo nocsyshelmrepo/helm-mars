@@ -8,6 +8,10 @@ license:
   #file:
   overwrite: false
 
+elasticsearch:
+  clusterName: mars-elk
+  replicas: 1
+
 image:
   mars:
     repository: nocsysmars/mars

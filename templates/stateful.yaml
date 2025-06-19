@@ -2,12 +2,12 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "mars.fullname" . }}-es
+  name: {{ include "mars.es.uname" . }}
   labels:
     {{- include "mars.labels" . | nindent 4 }}-es
 spec:
-  serviceName: {{ include "mars.fullname" . }}-es
-  replicas: 1
+  serviceName: {{ include "mars.es.uname" . }}
+  replicas: {{ .Values.elasticsearch.replicas }}
   selector:
     matchLabels:
       {{- include "mars.selectorLabels" . | nindent 6 }}-es
@@ -53,17 +53,15 @@ spec:
               mountPath: /usr/share/elasticsearch/data
           env:
             - name: cluster.name
-              value: mars-elk
+              value: "{{ .Values.elasticsearch.clusterName }}"
             - name: node.name
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
             - name: cluster.initial_master_nodes
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
+              value: "{{ template "mars.es.endpoints" . }}"
             - name: discovery.zen.ping.unicast.hosts
-              value: "{{ include "mars.fullname" . }}-es.{{ .Release.Namespace }}"
+              value: "{{ template "mars.es.uname" . }}-headless"
             - name: discovery.zen.minimum_master_nodes
               value: "1"
             - name: ES_JAVA_OPTS

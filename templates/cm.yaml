@@ -12,3 +12,90 @@ data:
 {{- end }}
 {{- end }}
 
+{{- if gt (int .Values.mars.replicas) 1 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-cm-init-sh
+  namespace: {{ $.Release.Namespace }}
+data:
+  configure-cluster.sh: |
+    #!/usr/bin/env bash
+
+    HOSTS=""
+    HLEN=""
+
+    function print_name() {
+        echo "  \"name\": \"default\","
+    }
+
+    function print_nodes() {
+        echo "  \"nodes\": ["
+
+        for (( i=0; i<${HLEN}; i++));
+        do
+            echo "    {"
+            echo "      \"id\": \"${HOSTS[$i]}\","
+            echo "      \"ip\": \"${HOSTS[$i]}\","
+            echo "      \"port\": 9876"
+            if [ $i -ne $((HLEN-1)) ]; then
+                echo "    },"
+            else
+                echo "    }"
+            fi
+        done
+        echo "  ],"
+    }
+
+    function print_mbrs() {
+        echo "      \"members\": ["
+
+        for (( j=0; j <${HLEN}; j++));
+        do
+            if [ $j -ne $((HLEN-1)) ]; then
+                echo "        \"${HOSTS[$j]}\","
+            else
+                echo "        \"${HOSTS[$j]}\""
+            fi
+        done
+        echo "      ]"
+    }
+
+    function print_parts() {
+        echo "  \"partitions\": ["
+
+        for (( i=0; i<${HLEN}; i++));
+        do
+            echo "    {"
+            echo "      \"id\": \"$((i+1))\","
+
+            print_mbrs
+
+            if [ $i -ne $((HLEN-1)) ]; then
+                echo "    },"
+            else
+                echo "    }"
+            fi
+        done
+        echo "  ]"
+
+    }
+
+    function print_config() {
+        echo "{"
+        print_name
+        print_nodes
+        print_parts
+        echo "}"
+    }
+
+    until nslookup "${MARS_SVC}" > /dev/null 2>&1; do sleep 2; done;
+
+    HOSTS=( $(dig $MARS_SVC +search +short) )
+    HLEN=${#HOSTS[@]}
+
+    print_config
+
+{{- end }}
+

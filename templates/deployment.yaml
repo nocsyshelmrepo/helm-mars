@@ -101,7 +101,7 @@ spec:
 
       containers:
         - name: {{ .Chart.Name }}-lgs
-          image: {{ include "mars.image" (list 
+          image: {{ include "mars.image" (list
                     .Values.global.repoPrefix .Values.image.lgs.repository .Values.image.lgs.tag) }}
           imagePullPolicy: {{ .Values.image.lgs.pullPolicy }}
 
@@ -124,7 +124,7 @@ metadata:
   labels:
     {{- include "mars.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.mars.replicas }}
   selector:
     matchLabels:
       {{- include "mars.selectorLabels" . | nindent 6 }}-mars
@@ -147,7 +147,18 @@ spec:
         operator: "Exists"
         effect: "NoExecute"
         tolerationSeconds: 60
+
       volumes:
+        {{- if gt (int .Values.mars.replicas) 1 }}
+        - name: config
+          emptyDir: {}
+
+        - name: init-scripts
+          configMap:
+            name: {{ .Release.Name }}-cm-init-sh
+            defaultMode: {{ default 0744 .Values.mode }}
+        {{- end }}
+
         - name: volume-conf
           configMap:
             name: {{ .Release.Name }}-cm-cfg
@@ -167,6 +178,28 @@ spec:
                 path: old.lic
         {{- end }}
 
+      {{- if gt (int .Values.mars.replicas) 1 }}
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: tutum/dnsutils:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MARS_SVC
+              value: {{ include "mars.fullname" . }}-mars-headless
+
+          command:
+            - /bin/bash
+            - '-c'
+            - "/scripts/configure-cluster.sh > /config/cluster.json"
+
+          volumeMounts:
+            - name: config
+              mountPath: /config
+
+            - name: init-scripts
+              mountPath: /scripts
+      {{- end }}
+
       containers:
         - name: {{ .Chart.Name }}-mars
           image: {{ include "mars.image" (list
@@ -174,6 +207,12 @@ spec:
           imagePullPolicy: {{ .Values.image.mars.pullPolicy }}
 
           volumeMounts:
+            {{- if gt (int .Values.mars.replicas) 1 }}
+            - name: config
+              mountPath: /root/onos/config/cluster.json
+              subPath: cluster.json
+            {{- end }}
+
             - name: volume-conf
               mountPath: /tmp/collectd.conf
               subPath: collectd.conf

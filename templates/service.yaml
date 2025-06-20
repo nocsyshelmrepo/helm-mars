@@ -6,6 +6,14 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   type: {{ .Values.service.web.type }}
+
+  {{- if eq .Values.service.web.type "NodePort"}}
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+    timeoutSeconds: 10800
+  {{- end }}
+
   selector:
     {{- include "mars.selectorLabels" . | nindent 4 }}-web-ui
   ports:
@@ -70,8 +78,11 @@ metadata:
   name: {{ template "mars.es.uname" . }}-headless
   labels:
     app: "{{ template "mars.es.uname" . }}"
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 spec:
-  clusterIP: None # This is needed for statefulset hostnames like elasticsearch-0 to resolve
+  publishNotReadyAddresses: true
+  clusterIP: None
   selector:
     {{- include "mars.selectorLabels" . | nindent 4 }}-es
   ports:
@@ -79,6 +90,28 @@ spec:
     port: {{ .Values.service.es.rest.port }}
   - name: inter-node
     port: {{ .Values.service.es.inter.port }}
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ include "mars.fullname" . }}-mars-headless
+  labels:
+    app: "{{ include "mars.fullname" . }}-mars"
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  publishNotReadyAddresses: true
+  clusterIP: None
+  selector:
+    {{- include "mars.selectorLabels" . | nindent 4 }}-mars
+  ports:
+    - port: {{ .Values.service.mars.mars.port }}
+      name: mars
+    - port: {{ .Values.service.mars.webssh.port }}
+      name: webssh
+
 
 ---
 apiVersion: v1

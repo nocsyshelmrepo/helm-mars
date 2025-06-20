@@ -12,6 +12,9 @@ elasticsearch:
   clusterName: mars-elk
   replicas: 1
 
+mars:
+  replicas: 3
+
 image:
   mars:
     repository: nocsysmars/mars

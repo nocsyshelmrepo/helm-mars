@@ -137,7 +137,7 @@ spec:
 
       {{- if .Values.mars.ipPool }}
       annotations:
-        cni.projectcalico.org/ipv4pools: '[ "mars-ippool" ]'
+        {{- (printf "cni.projectcalico.org/ipv4pools: '[ \"%s\" ]'" .Values.mars.ipPool) | nindent 8 }}
       {{- end }}
 
       labels:

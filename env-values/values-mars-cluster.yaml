@@ -1,7 +1,11 @@
-
+#
+# An example config to form a cluster of mars.
+# Need to aplly ippool.yaml and ipreserv.yaml first.
+# Only works for calico cni now.
+#
 mars:
   replicas: 3
-
+  ipPool: "mars-ippool"
 
 cmdstr:
   mars: |

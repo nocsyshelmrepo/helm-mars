@@ -13,8 +13,10 @@ elasticsearch:
   replicas: 1
 
 mars:
-  replicas: 2
-  ipPool: "mars-ippool"
+  replicas: 1
+
+  # need to use fixed ips for the mars cluster
+  #ipPool: "mars-ippool"
 
 image:
   mars:
@@ -185,8 +187,8 @@ pvc:
       size: 1Gi
     download:
       size: 100Mi
-  #mars:
-  #  size: 4Gi
+  mars:
+    size: 10Mi
   es:
     size: 4Gi
 

@@ -3,8 +3,8 @@ kind: IPPool
 metadata:
   name: mars-ippool
 spec:
-  cidr: 192.201.201.0/31
-  blockSize: 31
+  cidr: 192.201.201.0/30
+  blockSize: 30
   ipipMode: Always
   natOutgoing: true
   disabled: false

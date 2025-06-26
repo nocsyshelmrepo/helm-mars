@@ -1,0 +1,13 @@
+service:
+  web:
+    type: NodePort
+    https:
+      port: 443
+      nodePort: 30643
+    tftp:
+      port: 69
+      nodePort: 30669
+    http:
+      port: 80
+      nodePort: 30680
+

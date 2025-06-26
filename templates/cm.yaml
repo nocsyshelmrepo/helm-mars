@@ -39,6 +39,7 @@ data:
             echo "      \"id\": \"${HOSTS[$i]}\","
             echo "      \"ip\": \"${HOSTS[$i]}\","
             echo "      \"port\": 9876"
+
             if [ $i -ne $((HLEN-1)) ]; then
                 echo "    },"
             else
@@ -92,10 +93,21 @@ data:
 
     until nslookup "${MARS_SVC}" > /dev/null 2>&1; do sleep 2; done;
 
-    HOSTS=( $(dig $MARS_SVC +search +short) )
-    HLEN=${#HOSTS[@]}
+    while true
+    do
+      HOSTS=( $(dig $MARS_SVC +search +short | sort) )
+      HLEN=${#HOSTS[@]}
+      if [ "${HLEN}" = "${MARS_CNT}" ]; then
+          break
+      fi
+      sleep 2;
+    done
 
     print_config
+
+    if [ "${ONOS_IP}" = "${HOSTS[0]}" ]; then
+        echo "# MASTER"
+    fi
 
 {{- end }}
 

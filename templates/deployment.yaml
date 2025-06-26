@@ -130,10 +130,16 @@ spec:
       {{- include "mars.selectorLabels" . | nindent 6 }}-mars
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+#      {{- with .Values.podAnnotations }}
+#      annotations:
+#        {{- toYaml . | nindent 8 }}
+#      {{- end }}
+
+      {{- if .Values.mars.ipPool }}
       annotations:
-        {{- toYaml . | nindent 8 }}
+        cni.projectcalico.org/ipv4pools: '[ "mars-ippool" ]'
       {{- end }}
+
       labels:
         {{- include "mars.selectorLabels" . | nindent 8 }}-mars
     spec:
@@ -186,6 +192,14 @@ spec:
           env:
             - name: MARS_SVC
               value: {{ include "mars.fullname" . }}-mars-headless
+
+            - name: ONOS_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+
+            - name: MARS_CNT
+              value: "{{ .Values.mars.replicas }}"
 
           command:
             - /bin/bash

@@ -1,0 +1,45 @@
+
+mars:
+  replicas: 3
+
+
+cmdstr:
+  mars: |
+    cp /tmp/collectd.conf /etc/collectd/
+    echo "Hostname ${ONOS_IP}" >> /etc/collectd/collectd.conf
+
+    service collectd restart
+    service filebeat restart
+
+    . /root/onos/provision.sh &
+    /root/onos/bin/onos-service service &
+    sleep infinity
+    #/root/onos/run_k8s.sh
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  mars:
+    requests:
+      memory: 8Gi
+      cpu: 1000m
+  lgs:
+    requests:
+      memory: 2Gi
+      cpu: 100m
+  es:
+    requests:
+      memory: 2Gi
+      cpu: 100m
+  web-ui:
+    requests:
+      memory: 1Gi
+      cpu: 512m
+
+  web-download:
+    requests:
+       memory: 500Mi
+       cpu: 512m
+

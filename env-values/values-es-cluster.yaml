@@ -1,0 +1,6 @@
+#
+# An example to form a cluster of elasticsearch.
+#
+
+elasticsearch:
+  replicas: 3

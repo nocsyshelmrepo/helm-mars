@@ -1,4 +1,3 @@
-
 ---
 # mars helm chart
 -  install mars on k8s cluster.
@@ -22,7 +21,7 @@
 | `license.overwrite` | Overwrite the old license file found in PVC. | false |
 
 ## Usage:
-[Helm](https://helm.sh) must be installed to use the charts.  
+[Helm](https://helm.sh) must be installed to use the charts.
 Please refer to Helm's [documentation](https://helm.sh/docs/) to get started.
 
 1. Creating a copy of the default values.yaml.
@@ -49,5 +48,24 @@ helm install {release} -n {namespace} --set-file license.file=./{lic} {repo/char
 ```
 helm install {release} -n {namespace} \
   --set-file license.file=./{lic} --set license.overwrite {repo/chart}
+```
+7. Install a cluster with 3 mars controller.
+```
+Prerequisite: need to use calico's ip pool.
+
+a. kubectl apply -f env-values/ippool.yaml
+b. kubectl apply -f env-values/ipreserv.yaml
+c. helm install {release} -n {namespace} \
+    -f env-values/values-mars-cluster.yaml {repo/chart}
+```
+8. Install a mars controller ver sia.
+```
+helm install {release} -n {namespace} \
+  -f env-values/values-sia.yaml {repo/chart}
+```
+9. Install a mars controller with an elasticsearch cluster.
+```
+helm install {release} -n {namespace} \
+  -f env-values/values-es-cluster.yaml {repo/chart}
 ```
 
